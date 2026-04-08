@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+Visualizer Module
+Handles the rendering of the interactive network graph.
+"""
 from pyvis.network import Network
 import streamlit.components.v1 as components
 import tempfile
@@ -7,7 +11,7 @@ import os
 def plot_interactive_network(currencies, path=None):
     """
     Creates an interactive, draggable network graph using Pyvis.
-    Avoids the "hairball" effect by simplifying edges unless a path is found.
+    If a path is found, it highlights it. Otherwise, it just shows the nodes.
     """
     # Initialize dynamic network
     net = Network(height='500px', width='100%', bgcolor='#ffffff', font_color='black', directed=True)
@@ -22,19 +26,12 @@ def plot_interactive_network(currencies, path=None):
             node_color = '#d3d3d3' if path else '#1f77b4'
             net.add_node(curr, label=curr, color=node_color, size=15)
 
-    # Add edges
+    # Add edges ONLY if there is an arbitrage path
     if path:
-        # Only draw the exact arbitrage path to make it extremely clear
+        # Draw the exact arbitrage path
         for i in range(len(path) - 1):
             net.add_edge(path[i], path[i+1], color='#ff4b4b', width=3, arrows='to')
-    else:
-        # Draw simplified connections for aesthetics without lagging the browser
-        base_currencies = ['USD', 'EUR', 'GBP', 'JPY']
-        for curr in base_currencies:
-            if curr in currencies:
-                for other in base_currencies:
-                    if curr != other and other in currencies:
-                        net.add_edge(curr, other, color='#e0e0e0', width=1, arrows='to')
+    # Removed the confusing grey lines when there is no arbitrage
 
     # Configure physics for smooth draggable interactions
     net.set_options("""
