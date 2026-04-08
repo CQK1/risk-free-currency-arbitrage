@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-import os
 import streamlit as st
 import pandas as pd
+import os
 from core.data_engine import load_market_data
 from core.arbitrage_algo import bellman_ford_arbitrage
 from ui.visualizer import plot_interactive_network
@@ -12,12 +12,15 @@ st.set_page_config(page_title="Quant Arbitrage Analysis Model", layout="wide")
 st.title("Global Forex Market Risk-Free Arbitrage Monitoring System")
 st.markdown("Real-time arbitrage path discovery tool based on Graph Theory (**Bellman-Ford Algorithm**) and **Logarithmic Transformation**.")
 
+# ==========================================
 # 1. Load Data
+# ==========================================
+# Looking inside the 'data' folder
 data_file = os.path.join("data", "fx_market_large.csv")
 df_rates = load_market_data(data_file)
 
 if df_rates is None:
-    st.error(f"Cannot find data file `{data_file}`! Please run the data generation script first.")
+    st.error(f"Cannot find data file at `{data_file}`! Please ensure the 'data' folder exists and contains the CSV.")
     st.stop()
 
 currencies = df_rates.columns.tolist()
@@ -31,13 +34,16 @@ initial_capital = st.sidebar.number_input("Initial Capital (Simulated Units)", m
 fee_rate = st.sidebar.slider("Transaction Fee per Trade (%)", min_value=0.0, max_value=0.5, value=0.1, step=0.05)
 
 # Main UI - Data Preview
-st.subheader("Current Market Exchange Rate Matrix")
-st.dataframe(df_rates.iloc[:8, :8].style.format("{:.4f}"))
-st.caption("Note: For display purposes, only the first 8 currencies are shown here. The algorithm processes the full network.")
+st.subheader(f"Current Market Exchange Rate Matrix ({num_currencies} Currencies)")
+# 这里去掉了 iloc[:8, :8] 的限制，并设置了高度，方便滚动查看
+st.dataframe(df_rates.style.format("{:.4f}"), height=400, use_container_width=True)
+st.caption("Note: You can scroll horizontally and vertically to view the complete exchange rate matrix.")
 
 st.divider()
 
+# ==========================================
 # 2. Execution Module
+# ==========================================
 if st.button("Scan for Arbitrage Opportunities", type="primary"):
     with st.spinner('Scanning graph network using Bellman-Ford...'):
         
